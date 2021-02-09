@@ -33,11 +33,11 @@ summary(ITS)
 summary(ITS$SampleID.BarcodeSequence.LinkerPrimerSequence.Run.Ecosystem.Island.Lat.Lon.Collection_Date.F_Primer.R_Primer.Ecosys_Type.Host_Type.Host.InputFileName.Description)
 dim(ITS)
 str(ITS)
-boxplot(x)
+head(ITS)
+dat(ITS)
+dim(ITS)
+plot(x=ITS$Ecosystem, y=ITS$Lat, col= ITS$SampleID.BarcodeSequence.LinkerPrimerSequence.Run.Ecosystem.Island.Lat.Lon.Collection_Date.F_Primer.R_Primer.Ecosys_Type.Host_Type.Host.InputFileName.Description)
+#I answered the questions. However, the plot function doesn't work as the columns aren't individually separated. I'm not sure what to do.
 
-#I answered the questions but I'm not sure if you want the rest of the assignment done. I'm just getting errors
-
-?boxplot
-boxplot(x,data=ITS, main="ITS",
-        xlab="Ecosystem", ylab="Lat")
-boxplot(ITS$SampleID.BarcodeSequence.LinkerPrimerSequence.Run.Ecosystem.Island.Lat.Lon.Collection_Date.F_Primer.R_Primer.Ecosys_Type.Host_Type.Host.InputFileName.Description)
+class(ITS)
+dat <- read.csv("../../Data/ITS_mapping.csv")
