@@ -1,5 +1,5 @@
 # Howard Exam 1 Script
-
+library(ggplot2)
 # I. Load the data and make separate histograms
 conc <- read.csv("./DNA_Conc_by_Extraction_Date.csv")
 
@@ -16,7 +16,7 @@ class(conc)
 Katy_conc <- ggplot(data = conc) +
   geom_histogram(aes(DNA_Concentration_Katy), color = "blue") +
   theme_minimal() +
-Katy_conc + labs(title="Katy's DNA Concentration", 
+  labs(title="Katy's DNA Concentration", 
      y="Count", 
      x="DNA Concentration")
 
