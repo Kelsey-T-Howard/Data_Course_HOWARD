@@ -76,7 +76,7 @@ mean_child <- clean_child %>%
 ggplot(mean_child, aes(x=Year, y=Avg_Mortality, group = Continent, color = Continent)) +
   geom_path(size = 2) +
   scale_x_discrete(breaks = seq(0, 3000, by = 20)) +
-   labs(y="Mean Mortality Rate (deaths per 1000 live births", 
+   labs(y="Mean Mortality Rate (deaths per 1000 live births)", 
        x="Year") +
   theme_minimal ()
 str(mean_child)
@@ -86,7 +86,7 @@ jpeg("./HOWARD_Fig_3.jpg")
 ggplot(mean_child, aes(x=Year, y=Avg_Mortality, group = Continent, color = Continent)) +
   geom_path(size = 2) +
   scale_x_discrete(breaks = seq(0, 3000, by = 20)) +
-  labs(y="Mean Mortality Rate (deaths per 1000 live births", 
+  labs(y="Mean Mortality Rate (deaths per 1000 live births)", 
        x="Year") +
   theme_minimal ()
 str(mean_child)
