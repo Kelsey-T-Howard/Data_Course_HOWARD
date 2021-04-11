@@ -1,0 +1,118 @@
+---
+title: "Assignment_9"
+output: html_document
+---
+
+
+## Assigment 9
+
+For Assignment 9 we will explore and model the predictors of graduate school admission. First let's start by load some packages we will use. 
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(broom)
+library(modelr)
+library(ggplot2)
+library(GGally)
+```
+
+Now let's load our dataset.
+
+```{r message=FALSE, warning=FALSE}
+df <- read.csv("../../Data/GradSchool_Admissions.csv")
+```
+
+Now that we have the data loaded, let's go ahead and take a look. 
+
+```{r message=FALSE, warning=FALSE}
+names(df)
+ggpairs(df)
+glimpse(df)
+```
+
+As we can see, this dataset is not continuous so our graphs aren't very helpful. Our dependent variable is the **"admit"** column, or whether a student was admitted to grad school (1) or not (0). The **"gre"** column represents each students' GRE test score. The **"rank"** column indicates the rank of their undergraduate institution, 4 being the lowest and 1 being the highest.
+
+___
+
+In order to model our predictors of grad school admissions, we need to change the values in our "admit" column to logical values. This turns each 0 into "FALSE" and each 1 into "TRUE". This will allow us make a logistical regression model which will be useful.
+
+___
+
+_**Note: True/false predictors like the "admit" column are very useful and relevant in Biology.**_
+
+```{r message=FALSE, warning=FALSE}
+df$admit <- as.logical(df$admit)
+df$rank <- as.factor(df$rank)
+```
+
+Now we can begin building our models.
+
+```{r message=FALSE, warning=FALSE}
+mod1 <- glm(data = df, 
+            formula = admit ~ gpa * rank,
+            family = "binomial")
+
+mod2 <- glm(data = df, 
+            formula = admit ~ gre * rank,
+            family = "binomial")
+
+mod3 <- glm(data = df, 
+            formula = admit ~ gpa * rank * gre,
+            family = "binomial")
+
+mod4 <- glm(data = df, 
+            formula = admit ~ gpa * gre,
+            family = "binomial")
+```
+
+In each model we are modeling admittance as a function of gpa, gre, rank, all, or just a few. Let's look at a summary of each.
+
+```{r message=FALSE, warning=FALSE}
+summary(mod1)
+summary(mod2)
+summary(mod3)
+summary(mod4)
+```
+
+These summaries aren't giving very significant indicators of admittance so before we test our predictions we're going to narrow down the model selection by comparing our residuals.
+
+```{r message=FALSE, warning=FALSE}
+abs(residuals(mod1)) %>% mean
+abs(residuals(mod2)) %>% mean
+abs(residuals(mod3)) %>% mean 
+abs(residuals(mod4)) %>% mean
+```
+
+Model 3 has the lowest residual average. Since our summaries didn't give indicators of high significance, we can conclude all 3 variables contribute greatly to the admittance of a student. Let's add our predictions. This will make a new column in the dataframe that predicts each student's chances of getting into grad school. We will then graph our results. _(Note: The code line **type = "binomal"** below is unique to binomial predictors).
+
+```{r message=FALSE, warning=FALSE}
+add_predictions(df, mod3, type = "response") %>% 
+  ggplot() +
+  geom_point(aes(x=gre, y=pred, color = rank))
+```
+
+### What does this mean?
+
+___
+
+This graph shows that as a student's GRE score increases, so does their chances of getting into grad school. The color by rank shows that students that attended Rank 1 schools are even more likely to get in than other ranks at a certain point. Let's look at another graph.
+
+```{r message=FALSE, warning=FALSE}
+add_predictions(df, mod3, type = "response") %>% 
+  ggplot(aes(x=gpa, y=pred, color = rank)) +
+  geom_smooth()
+```
+
+This graph shows that the higher a student's GPA, the more likely they are to get into grad school. Just like the first graph, the student's undergraduate school's rank strongly affects a student's chances of getting into grad school. Notice how just under the 2.5 GPA mark, Rank 1 students have about double the chance of a Rank 3 student of getting into grad school. Depressing, isn't it? 
+
+```{r message=FALSE, warning=FALSE}
+add_predictions(df, mod3, type = "response") %>% 
+  ggplot() +
+  geom_boxplot(aes(x=rank, y=pred, color = rank))
+```
+
+This boxplot further demonstrates the trends already shown. Students with a higher rank have a better chance of getting into graduate school. The graphs have shown some outliers in the predictions. These could be explained by data that we do not possess, or simply be because of immeasurable factors.
+
+___
+
+To conclude, our analysis has predicted that gre, gpa, and rank are all strong factors in whether a student gets accepted to grad school or not. The rank of a student's undergraduate shows precedence above similarly scoring students' gre and gpa of lower ranks. 
