@@ -1,0 +1,115 @@
+---
+title: "HOWARD_Skills_Test_3_Markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exam 3
+
+First I will load some packages that will be needed.
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(janitor)
+library(broom)
+```
+
+For the first task, I'm going to recreate the first plot shown and save it.
+
+```{r message=FALSE, warning=FALSE}
+sal <- read.csv("./FacultySalaries_1995.csv")
+names(sal)
+names(sal)
+
+fult <- sal %>% 
+  select(c("FedID", "UnivName", "State", "Tier", "NumInstructors", "AvgProfSalaryAll", "AvgProfCompAll", "NumFacultyAll", contains(c("Full")))) %>% 
+mutate(Rank = "Full") %>% 
+  rename(AvgSalary = AvgFullProfSalary) %>% 
+  rename(AvgComp = AvgFullProfComp) %>% 
+rename(NumProfs = NumFullProfs)
+
+asso <- sal %>% 
+  select(c("FedID", "UnivName", "State", "Tier", "NumInstructors", "AvgProfSalaryAll", "AvgProfCompAll", "NumFacultyAll", contains(c("Assoc")))) %>% 
+  mutate(Rank = "Assoc") %>% 
+  rename(AvgSalary = AvgAssocProfSalary) %>% 
+  rename(AvgComp = AvgAssocProfComp) %>% 
+  rename(NumProfs = NumAssocProfs)
+
+names(asso)
+assi <- sal %>% 
+  select(c("FedID", "UnivName", "State", "Tier", "NumInstructors", "AvgProfSalaryAll", "AvgProfCompAll", "NumFacultyAll", contains(c("Assist")))) %>% 
+  mutate(Rank = "Assist") %>% 
+  rename(AvgSalary = AvgAssistProfSalary) %>% 
+  rename(AvgComp = AvgAssistProfComp) %>% 
+  rename(NumProfs = NumAssistProfs)
+
+clean <- rbind(fult, assi, asso)
+
+cclean <- clean[clean$Tier != "VIIB" ,]
+
+# Recreate Figure 1
+ggplot(cclean, aes(x=Rank, y=AvgSalary, fill = Rank)) +
+  geom_boxplot() +
+  facet_wrap(~Tier) +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle=60,hjust=1)) +
+  labs(y="Salary", 
+       x="Rank")
+
+# Save the graph
+jpeg("./HOWARD_Fig_1.jpg")
+ggplot(cclean, aes(x=Rank, y=AvgSalary, fill = Rank)) +
+  geom_boxplot() +
+  facet_wrap(~Tier) +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle=60,hjust=1)) +
+  labs(y="Salary", 
+       x="Rank")
+dev.off()
+```
+For task 2, I need to export an ANOVA table.
+```{r message=FALSE, warning=FALSE}
+mod1 <- aov(data = cclean,
+            formula = AvgSalary ~ State + Tier + Rank)
+anv <- summary(mod1)
+
+capture.output(anv, file = "./Salary_ANOVA_Summary.txt")
+```
+For Task 3, I will load a new dataset and clean it.
+```{r message=FALSE, warning=FALSE}
+oil <- read.csv("./Juniper_Oils.csv")
+
+coil <- pivot_longer(oil,
+                     c("alpha.pinene","para.cymene","alpha.terpineol","cedr.9.ene","alpha.cedrene","beta.cedrene","cis.thujopsene","alpha.himachalene","beta.chamigrene","cuparene","compound.1","alpha.chamigrene","widdrol","cedrol","beta.acorenol","alpha.acorenol","gamma.eudesmol","beta.eudesmol","alpha.eudesmol","cedr.8.en.13.ol","cedr.8.en.15.ol","compound.2","thujopsenal"),
+                     names_to = "Compound",
+                     values_to = "Concentration")
+```
+Now I will attempt to recreate Figure 2.
+```{r message=FALSE, warning=FALSE}
+ggplot(coil, aes(x=YearsSinceBurn, y=Concentration)) +
+  geom_smooth() +
+  theme_minimal() +
+  facet_wrap(Compound ~ ., scales="free")
+
+# Save the graph
+jpeg("./HOWARD_Fig_2.jpg")
+ggplot(coil, aes(x=YearsSinceBurn, y=Concentration)) +
+  geom_smooth() +
+  theme_minimal() +
+  facet_wrap(Compound ~ ., scales="free")
+dev.off()
+```
+For Task 5, I need to show which compounds are significant to the Concentration value using a generalized linear model.
+```{r message=FALSE, warning=FALSE}
+mod2 <- glm(data = coil,
+            formula = Concentration ~ Compound * YearsSinceBurn)
+summary(mod2)
+
+tidy(mod2) %>% 
+  filter(p.value < .05)
+```
+End of Skills Test 3.
