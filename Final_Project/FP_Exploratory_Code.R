@@ -16,8 +16,9 @@ library(DataExplorer)
 install.packages("DataExplorer")
 install.packages("transformr")
 
-# The dataset I will be using is video game data collected from vgchartz.com. This dataset contains a list of video games with sales greater than 100,000 copies.
-# The objectives of this final project are to a) test hypothesis by analyzing data and b) portray results through learning of a new R package (TBD).
+# The dataset I will be using is video game data collected from vgchartz.com. This dataset contains a list of video games with sales greater than 100,000 copies. I want to know which factors contribute to a best-selling video game and why they do. I'm hoping my analysis can help me answer this question.
+# The objectives of this final project are to a) test my hypothesis by analyzing the data and b) portray my results through the learning of a new R package, plotly. 
+
 # First let's load our dataset and take a look
 
 vg <- read.csv("./vgsales.csv")
@@ -46,7 +47,7 @@ unique(cvg$Genre)
 unique(cvg$Publisher)
 unique(cvg$Country)
 
-# By looking at this dataset, it is clear that the rank of the game is based off how well the game did in terms of sales. Sales and Rank are our dependent variables, while Platform, Year, Genre, and Publisher are our independent variables. We want to know which of our independent variables contributes the most to the Global Sales/Rank. My hypothesis is that Publisher and Year are the strongest predictors. We will make several graphs examining each variable and its relationship with our dependent variables in order to test this hypothesis.
+# By looking at this dataset, it is clear that the rank of the game is based off how well the game did in terms of sales. Sales and Rank are our dependent variables, while Platform, Year, Genre, and Publisher are our independent variables. We want to know which of our independent variables contributes the most to the Global Sales/Rank. Personally I think that Publisher and Year are the strongest predictors. To see, we will make several graphs examining each variable and its relationship with our dependent variables in order to test this hypothesis.
 
 ggplot(cvg, aes(x=Rank, y=Sales)) +
   geom_smooth() +
