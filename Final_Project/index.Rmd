@@ -1,0 +1,347 @@
+---
+title: "3100 Final Project"
+output: html_document
+---
+
+# Analysis of Video Game Data
+
+____
+
+The dataset I will be using for this analysis is video game data collected from vgchartz.com. This dataset contains a list of video games with sales greater than 100,000 copies. This data includes:
+
+
+**Rank** - Overall rank of the game, determined by total sales made
+
+
+**Name** - The name of the video game
+
+
+**Platform** - The type of system the game is played on
+
+
+**Year** - The year the video game was made
+
+
+**Genre** - The genre of game
+
+
+**Publisher** - The company that made the game
+
+
+**NA_Sales** - Number of sales in North America
+
+
+**EU_Sales** - Number of sales in Europe
+
+
+**JP_Sales** - Number of sales in Japan
+
+
+**Other_Sales** - Number of sales in countries other than the above
+
+
+**Global_Sales** - The total number of sales
+
+
+For this project I wanted to know which factors contributed the most to a best-selling video game and why. 
+The objectives of this final project are to a) test hypothesis through analyzing the data and b) portray results new R package, plotly.
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(janitor)
+library(broom)
+library(modelr)
+library(skimr)
+library(gganimate)
+library(gifski)
+library(png)
+library(transformr)
+library(plotly)
+vg <- read.csv("./vgsales.csv")
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+nvg <- vg %>% 
+  rename(`North America` = NA_Sales) %>% 
+  rename(Europe = EU_Sales) %>% 
+  rename(Japan = JP_Sales) %>% 
+  rename(Other = Other_Sales)
+  
+cvg <- pivot_longer(nvg,
+                    c("North America", "Europe", "Japan", "Other"),
+                            names_to = "Country",
+                            values_to = "Sales")
+
+str(cvg)
+cvg$Year <- as.numeric(as.character(cvg$Year))
+```
+
+
+After cleaning our data, we'll take a look at the statistics of our dataset. 
+```{r message=FALSE, warning=FALSE}
+glimpse(cvg)
+summary(cvg)
+skim(cvg)
+cvg %>%
+  summarize(sum(Global_Sales), mean(Global_Sales))
+unique(cvg$Platform)
+unique(cvg$Year)
+unique(cvg$Genre)
+unique(cvg$Country)
+```
+
+
+By looking at this dataset, it is clear that the rank of the game is based off how well the game did in terms of sales. Sales and Rank are our dependent variables, while Platform, Year, Genre, and Publisher are our independent variables. We want to know which of our independent variables contributes the most to the Global Sales/Rank so that we can make predictions. We will make several graphs examining each variable and its relationship with our dependent variables in order to know what to test.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(cvg, aes(x=Rank, y=Sales)) +
+  geom_smooth() +
+  transition_states(Country,
+                    transition_length = 2,
+                    state_length = 1) +
+  ggtitle('Now showing {closest_state}',
+          subtitle = 'Frame {frame} of {nframes}')
+
+ggplotly(ggplot(cvg, aes(x=Rank, y=Sales, color = Country)) +
+  geom_smooth())
+```
+
+
+These two graphs show the correlation between Rank and Global Sales between different countries. The second graph is interactive, courtesy of the Plotly package. By hovering over different coordinates, you can see the exact number of sales in each country , as well as the exact rank.
+
+
+The positive correlation between Rank and Sales is obvious when looking at this graph. But what the graph also sheds light on is the fact there were the most sales in North America. This could be due to the US being more entertainment-based than Japan or Europe. The population of Japan is smaller than Europe or America so that definitely could be a factor here in this graph. Let's look at another graph.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(cvg, aes(y=Genre, fill = Genre)) +
+  geom_bar(stat="count", width=0.7, fill="steelblue"))
+```
+
+
+This graph shows the most popular genre of video game is Action with 13,264 counts. Sports is a not-so close second place with 9,384 counts. The puzzle genre showed up the least amount compared to the others, with only 2328 counts. These results make sense, as the term "Action" can apply to a large variety of different games. The Puzzle genre seems like it could be quite limited, with less games in production, and this would explain its relatively low count. An explanation for the success of the Sports genre could be that it has games with rights to the NFL which had a huge fanbase already, resulting in a sales increase. Let's look at another graph.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(cvg, aes(x=Platform, fill = Platform)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=90,hjust=1)))
+```
+
+
+This graph shows which platforms appear in our data the most. It appears the Nintendo DS and PS2 sold the most compared to the other platforms. The PS2 is already widely regarded as the most successful video game console as it has sold more game copies than any other console. Most of this success is due to the console being the first revolutionary first installment in the world of modern gaming. It also functioned as a DVD player, so its flexible usage appealed to a huge audience.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(cvg, aes(x=Platform, fill = Genre)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=90,hjust=1)))
+```
+
+
+This graph combines both Platform and Genre. By looking closely at the graph we can see most a large chunk of PS2 sales came from the Sports genre which, as we saw previously, was a popular genre. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(cvg, aes(x=Year)) +
+  geom_bar(fill = "mediumpurple4") +
+  theme(axis.text.x=element_text(angle=90,hjust=1)))
+```
+
+
+This bargraph shows how frequently each year appears on the list. It appears most of the games in the dataset were developed from 2001 to 2011.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(cvg, aes(x=Year, y=Global_Sales)) +
+  geom_smooth(color = "hotpink4") +
+  theme(axis.text.x=element_text(angle=90,hjust=1)))
+```
+
+
+This graph shows that the actual sales count was the highest with games made around 1987 to 1989. We can double check the data. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+sal <- vg %>% 
+  filter(vg$Year == 1988)
+sal %>%
+  summarize(sum(sal$Global_Sales), mean(sal$Global_Sales))
+```
+
+
+Our data shows us that 1988 definitely does have a higher sales average than what we calculated the dataset as a whole to have above. I don't know why this is the case, but hopefully we will unearth some answers using the data further.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(cvg, aes(x= Year, y= Sales, color= Country)) +
+  geom_smooth() +
+  facet_wrap(~Country) +
+  theme(axis.text.x=element_text(angle=90,hjust=1)))
+```
+
+This graph is faceted based on the sales in each year in each country. This graph also shows that there were more sales in North America. Like the above graph, North America and Japan show a peak around 1988. Europe shows a slight bump around that time even though we have seen previously that Europe had more sales than Japan. To explain this trend, one explanation could be some games made around that time must've been popularized by Japanese and Western culture and sold better. 
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+top <- slice(vg, 1:100)
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+top$Year <- as.numeric(as.character(top$Year))
+```
+
+We have subset the data to include the top 100 ranked games in the datasheet. This will help us make and test predictions for the rest of the dataset. 
+
+
+```{r message=FALSE, warning=FALSE}
+glimpse(top)
+summary(top)
+top %>%
+  summarize(sum(Global_Sales), mean(Global_Sales))
+unique(top$Platform)
+```
+
+
+The mean of this subset is significantly higher than the dataset as a whole. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(top, aes(x= Year, y= Global_Sales)) +
+           geom_point(color = "magenta4") +
+           theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  labs(title="Top 100 Video Games"))
+```
+
+
+By looking at the subsetted graph, it appears more games are concentrated in the 2010 and 2011 years. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(top,aes(x= Year, y= Genre, color = Platform)) +
+           geom_point() +
+           theme(axis.text.x=element_text(angle=90,hjust=1)) +
+           labs(title="Top 100 Video Games"))
+```
+
+The subset makes plotting these variables against each other easier.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplotly(ggplot(top,aes(x= Publisher, y= Genre, color = Platform)) +
+           geom_point() +
+           theme(axis.text.x=element_text(angle=90,hjust=1)) +
+           labs(title="Top 100 Video Games")) %>% 
+  rangeslider(borderwidth = 10)
+```
+
+
+After visualizing the data we are ready to make predictions about our data. We will test the relationship of our independent variables with our dependent variable, Global Sales.
+
+
+```{r message=FALSE, warning=FALSE}
+mod1 <- aov(data = top,
+            formula = Global_Sales ~ Platform + Year + Publisher + Genre)
+residuals(mod1)^2 %>% mean() %>% sqrt()
+summary(mod1)
+```
+
+
+Based on the ANOVA table, we have a slightly significant variable, Year. Platform looks like the next influential, with Genre next. Now we can plot our predictions to see how useful the model is.
+
+
+```{r message=FALSE, warning=FALSE}
+pred <- add_predictions(top, mod1) 
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(pred, aes(x=Year, y=Global_Sales)) +
+  geom_line(aes(y=Global_Sales), color = "Red") +
+  geom_line(aes(y=pred), color = "Green") +
+  labs(caption="Green = Predictions")+
+           labs(title="Top 100 Video Games")
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(pred, aes(x=Year, y=Global_Sales)) +
+  geom_point(aes(y=Global_Sales),alpha = .6, color = "Purple") +
+  geom_point(aes(y=pred), alpha = .8, color = "Yellow") +
+  facet_wrap(~Genre) +
+  labs(caption="Yellow = Predictions")+
+           labs(title="Top 100 Video Games")
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(pred, aes(x=Platform, y=Global_Sales)) +
+  geom_point(aes(y=Global_Sales) ,alpha = .6, color = "Blue") +
+  geom_point(aes(y=pred),alpha = .4, color = "Orange") +
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  facet_wrap(~Genre) +
+  labs(caption="Orange = Predictions") +
+    labs(title="Top 100 Video Games")
+vg$Year <- as.numeric(as.character(vg$Year))
+         
+```
+
+
+The model didn't do too bad in predicting Global Sales. We can try to extend our model to our full dataset. 
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+mod3 <- aov(data = vg,
+            formula = Global_Sales ~  Year + Platform + Genre)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+residuals(mod3)^2 %>% mean() %>% sqrt()
+summary(mod3)
+```
+
+
+
+```{r message=FALSE, warning=FALSE}
+predd <- add_predictions(vg, mod3) 
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(predd, aes(x=Year, y=Global_Sales)) +
+  geom_line(aes(y=Global_Sales), color = "Red") +
+  geom_line(aes(y=pred), color = "Green") +
+  labs(caption="Green = Predictions")
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(predd, aes(x=Year, y=Global_Sales)) +
+  geom_point(aes(y=Global_Sales),alpha = .6, color = "Purple") +
+  geom_point(aes(y=pred), alpha = .8, color = "Yellow") +
+  facet_wrap(~Genre) +
+  labs(caption="Yellow = Predictions")
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(predd, aes(x=Platform, y=Global_Sales)) +
+  geom_point(aes(y=Global_Sales) ,alpha = .6, color = "Blue") +
+  geom_point(aes(y=pred),alpha = .4, color = "Orange") +
+  theme(axis.text.x=element_text(angle=90,hjust=1)) +
+  facet_wrap(~Genre) +
+  labs(caption="Orange = Predictions")
+```
+
+When it comes to a larger dataset, the model didn't do as good a job predicting datapoints. The differences can be seen between the first and second set of graphs. So far it appears that Year is the strongest predictor in what makes a best-selling game. However, since our ANOVA table stated each factor was significant (which is not very helpful), it appears more data is needed to fully answer the question. 
